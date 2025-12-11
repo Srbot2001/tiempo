@@ -13,12 +13,10 @@ import FriendsView from './components/FriendsView'
 import AlertNotification from './components/AlertNotification'
 import { getWeatherData, getForecastData } from './services/weather'
 import { addSearchHistory, checkActiveAlerts, isFavorite, addFavorite, removeFavorite, getFavorites } from './services/supabase'
-import { useLanguage } from './context/LanguageContext'
 import { useAuth } from './context/AuthContext'
 import { LogOut, Star } from 'lucide-react'
 
 function App() {
-  const { t, language, setLanguage } = useLanguage();
   const { user, loading: authLoading, signOut } = useAuth();
   const [currentView, setCurrentView] = useState('dashboard');
   const [city, setCity] = useState('La Paz');
@@ -29,6 +27,59 @@ function App() {
   const [triggeredAlerts, setTriggeredAlerts] = useState([]);
   const [isFavorited, setIsFavorited] = useState(false);
   const [favoriteId, setFavoriteId] = useState(null);
+
+  // Detectar ubicación al cargar
+  useEffect(() => {
+    if (!user) return;
+
+    const detectLocation = () => {
+      if ('geolocation' in navigator) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const { latitude, longitude } = position.coords;
+            const nearestCity = findNearestBolivianCity(latitude, longitude);
+            setCity(nearestCity);
+          },
+          (error) => {
+            console.log('Geolocalización no disponible, usando La Paz por defecto');
+            // Ya está en La Paz por defecto
+          }
+        );
+      }
+    };
+
+    detectLocation();
+  }, [user]);
+
+  // Función para encontrar la ciudad boliviana más cercana
+  const findNearestBolivianCity = (lat, lon) => {
+    const bolivianCities = {
+      'La Paz': { lat: -16.5000, lon: -68.1500 },
+      'Santa Cruz': { lat: -17.7833, lon: -63.1821 },
+      'Cochabamba': { lat: -17.3895, lon: -66.1568 },
+      'Sucre': { lat: -19.0333, lon: -65.2627 },
+      'Oruro': { lat: -17.9667, lon: -67.1167 },
+      'Tarija': { lat: -21.5355, lon: -64.7296 },
+      'Potosí': { lat: -19.5836, lon: -65.7531 },
+      'Trinidad': { lat: -14.8333, lon: -64.9000 },
+      'Cobija': { lat: -11.0267, lon: -68.7692 }
+    };
+
+    let nearestCity = 'La Paz';
+    let minDistance = Infinity;
+
+    Object.entries(bolivianCities).forEach(([cityName, coords]) => {
+      const distance = Math.sqrt(
+        Math.pow(lat - coords.lat, 2) + Math.pow(lon - coords.lon, 2)
+      );
+      if (distance < minDistance) {
+        minDistance = distance;
+        nearestCity = cityName;
+      }
+    });
+
+    return nearestCity;
+  };
 
   useEffect(() => {
     if (user && currentView === 'dashboard') {
@@ -46,16 +97,8 @@ function App() {
       setForecast(forecastData);
       setUsingMockData(weatherData?.isMock || false);
 
-      // Guardar en historial si el usuario está logueado
+      // Verificar alertas activas (siempre)
       if (user && !weatherData?.isMock) {
-        await addSearchHistory(
-          user.id,
-          city,
-          weatherData.main.temp,
-          weatherData.weather[0].main
-        );
-
-        // Verificar alertas activas
         const alerts = await checkActiveAlerts(user.id, weatherData);
         if (alerts.length > 0) {
           const alertMessages = alerts.map(alert => ({
@@ -70,6 +113,31 @@ function App() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Función para manejar cambio manual de ciudad
+  const handleCityChange = async (newCity) => {
+    if (newCity === city) return; // No hacer nada si es la misma ciudad
+
+    const oldCity = city;
+    setCity(newCity);
+
+    // Esperar a que se actualice el clima y luego guardar
+    setTimeout(async () => {
+      try {
+        const weatherData = await getWeatherData(newCity);
+        if (!weatherData?.isMock && user) {
+          await addSearchHistory(
+            user.id,
+            newCity,
+            weatherData.main.temp,
+            weatherData.weather[0].main
+          );
+        }
+      } catch (error) {
+        console.error('Error guardando historial:', error);
+      }
+    }, 500); // Esperar medio segundo para que cargue el clima
   };
 
   const checkIfFavorite = async () => {
@@ -148,7 +216,7 @@ function App() {
           color: 'var(--text-secondary)',
           fontSize: '1.2rem'
         }}>
-          {t('loading')}...
+          Cargando...
         </div>
       </div>
     );
@@ -182,7 +250,7 @@ function App() {
               alignItems: 'flex-start'
             }}>
               <div style={{ flex: 1 }}>
-                <CitySelector selectedCity={city} onCityChange={setCity} />
+                <CitySelector selectedCity={city} onCityChange={handleCityChange} />
               </div>
 
               {/* Botón agregar/quitar favorito */}
@@ -228,7 +296,7 @@ function App() {
                 color: 'var(--text-secondary)',
                 fontSize: '1rem'
               }}>
-                {t('loading')}...
+                Cargando...
               </div>
             ) : (
               <>
@@ -266,7 +334,7 @@ function App() {
             fontSize: '2rem',
             margin: '0 0 0.5rem 0'
           }}>
-            {t('appTitle')}
+            Clima Bolivia
           </h1>
 
           {/* User info y controles */}
@@ -286,15 +354,19 @@ function App() {
               alignItems: 'center',
               gap: '10px'
             }}>
-              {user.user_metadata?.avatar_url && (
+              {(user.user_metadata?.avatar_url || user.user_metadata?.picture) && (
                 <img
-                  src={user.user_metadata.avatar_url}
+                  src={user.user_metadata?.avatar_url || user.user_metadata?.picture}
                   alt="Avatar"
                   style={{
                     width: '32px',
                     height: '32px',
                     borderRadius: '50%',
-                    border: '2px solid var(--neon-cyan)'
+                    border: '2px solid var(--neon-cyan)',
+                    objectFit: 'cover'
+                  }}
+                  onError={(e) => {
+                    e.target.style.display = 'none';
                   }}
                 />
               )}
@@ -320,24 +392,6 @@ function App() {
               display: 'flex',
               gap: '8px'
             }}>
-              {/* Cambiar idioma */}
-              <button
-                onClick={() => setLanguage(language === 'es' ? 'en' : 'es')}
-                style={{
-                  background: 'rgba(255, 255, 255, 0.05)',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
-                  borderRadius: '8px',
-                  padding: '6px 12px',
-                  color: 'var(--text-secondary)',
-                  fontWeight: '600',
-                  fontSize: '0.75rem',
-                  textTransform: 'uppercase',
-                  cursor: 'pointer'
-                }}
-              >
-                {language.toUpperCase()}
-              </button>
-
               {/* Logout */}
               <button
                 onClick={signOut}

@@ -1,9 +1,7 @@
 import React from 'react';
 import { Droplets, Wind, Gauge } from 'lucide-react';
-import { useLanguage } from '../context/LanguageContext';
 
 const WeatherCard = ({ data }) => {
-    const { t } = useLanguage();
     if (!data) return null;
 
     const { main, weather, wind, name } = data;
@@ -99,7 +97,7 @@ const WeatherCard = ({ data }) => {
                         letterSpacing: '0.05em',
                         fontWeight: '500'
                     }}>
-                        {t('humidity')}
+                        Humedad
                     </div>
                 </div>
 
@@ -142,7 +140,7 @@ const WeatherCard = ({ data }) => {
                         letterSpacing: '0.05em',
                         fontWeight: '500'
                     }}>
-                        {t('wind')} m/s
+                        Viento m/s
                     </div>
                 </div>
 
@@ -185,7 +183,7 @@ const WeatherCard = ({ data }) => {
                         letterSpacing: '0.05em',
                         fontWeight: '500'
                     }}>
-                        {t('pressure')} hPa
+                        Presión hPa
                     </div>
                 </div>
             </div>

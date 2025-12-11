@@ -250,7 +250,8 @@ VITE_SUPABASE_ANON_KEY=tu_anon_key_aqui
 ## 🎯 Features Implementadas
 
 ✅ Consultar clima de ciudades de Bolivia  
-✅ Cambiar idioma (ES/EN)  
+✅ **Detección automática de ubicación** (ciudad boliviana más cercana)  
+✅ **Idioma:** Solo Español (descripciones del clima en español)  
 ✅ Tema dark cyberpunk  
 ✅ **Login con Google** (obligatorio)  
 ✅ **Favoritos** (guardar ciudades) - CONECTADO  

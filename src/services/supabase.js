@@ -247,26 +247,38 @@ export const deleteTrip = async (tripId) => {
 // ================================================
 
 export const sendFriendRequest = async (userId, friendEmail) => {
-    // Primero buscar el usuario por email
+    // Buscar el usuario por email usando función SQL
     const { data: users, error: searchError } = await supabase
-        .from('auth.users')
-        .select('id')
-        .eq('email', friendEmail)
-        .single();
+        .rpc('buscar_usuario_por_email', { p_email: friendEmail });
+    
+    if (searchError || !users || users.length === 0) {
+        throw new Error('Usuario no encontrado');
+    }
 
-    if (searchError) throw new Error('Usuario no encontrado');
+    const friendId = users[0].id_usuario;
+
+    // Verificar que no sea el mismo usuario
+    if (friendId === userId) {
+        throw new Error('No puedes agregarte a ti mismo');
+    }
 
     const { data, error } = await supabase
         .from('amigos')
         .insert([{
             usuario_id: userId,
-            amigo_id: users.id,
+            amigo_id: friendId,
             estado: 'pendiente'
         }])
         .select()
         .single();
-
-    if (error) throw error;
+    
+    if (error) {
+        // Error de duplicado (ya existe solicitud)
+        if (error.code === '23505') {
+            throw new Error('Ya enviaste una solicitud a este usuario');
+        }
+        throw error;
+    }
     return data;
 };
 

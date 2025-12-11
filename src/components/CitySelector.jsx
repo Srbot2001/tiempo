@@ -1,6 +1,5 @@
 import React from 'react';
 import { MapPin } from 'lucide-react';
-import { useLanguage } from '../context/LanguageContext';
 
 const cities = [
     'La Paz',
@@ -15,8 +14,6 @@ const cities = [
 ];
 
 const CitySelector = ({ selectedCity, onCityChange }) => {
-    const { t } = useLanguage();
-
     return (
         <div style={{ marginBottom: '2rem' }}>
             <label style={{
@@ -29,7 +26,7 @@ const CitySelector = ({ selectedCity, onCityChange }) => {
                 fontWeight: '500',
             }}>
                 <MapPin size={16} />
-                <span>{t('selectCity')}</span>
+                <span>Selecciona una ciudad</span>
             </label>
             <select
                 value={selectedCity}

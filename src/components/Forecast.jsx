@@ -1,8 +1,6 @@
 import React from 'react';
-import { useLanguage } from '../context/LanguageContext';
 
 const Forecast = ({ data }) => {
-    const { t } = useLanguage();
     if (!data || !data.list) return null;
 
     // Filter to get one reading per day (e.g., at 12:00 PM)
@@ -22,7 +20,7 @@ const Forecast = ({ data }) => {
                 letterSpacing: '0.08em',
                 textAlign: 'center'
             }}>
-                {t('forecastTitle')}
+                Pronóstico 5 Días
             </h3>
 
             <div style={{

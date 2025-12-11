@@ -204,7 +204,7 @@ BEGIN
       WHEN a.usuario_id = p_usuario_id THEN a.amigo_id
       ELSE a.usuario_id
     END as id_amigo,
-    u.email as email_amigo,
+    u.email::TEXT as email_amigo,
     a.creado_en as desde
   FROM amigos a
   JOIN auth.users u ON (
@@ -219,6 +219,26 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 COMMENT ON FUNCTION obtener_amigos_aceptados IS 'Devuelve la lista de amigos aceptados de un usuario';
+
+-- Función para buscar usuario por email (para solicitudes de amistad)
+CREATE OR REPLACE FUNCTION buscar_usuario_por_email(p_email TEXT)
+RETURNS TABLE (
+  id_usuario UUID,
+  email_usuario TEXT
+) AS $$
+BEGIN
+  RETURN QUERY
+  SELECT 
+    id as id_usuario,
+    email::TEXT as email_usuario
+  FROM auth.users
+  WHERE email = p_email
+  LIMIT 1;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+COMMENT ON FUNCTION buscar_usuario_por_email IS 'Busca un usuario por su email para enviar solicitudes de amistad';
+
 
 -- ================================================
 -- TRIGGERS (DISPARADORES)

@@ -8,7 +8,7 @@ export const getWeatherData = async (city) => {
     }
 
     try {
-        const response = await fetch(`${BASE_URL}/weather?q=${city},BO&units=metric&appid=${API_KEY}`);
+        const response = await fetch(`${BASE_URL}/weather?q=${city},BO&units=metric&lang=es&appid=${API_KEY}`);
 
         if (response.status === 401) {
             console.warn('API Key unauthorized (401). It might not be activated yet. Returning mock data.');
@@ -28,7 +28,7 @@ export const getForecastData = async (city) => {
         return getMockForecast(city);
     }
     try {
-        const response = await fetch(`${BASE_URL}/forecast?q=${city},BO&units=metric&appid=${API_KEY}`);
+        const response = await fetch(`${BASE_URL}/forecast?q=${city},BO&units=metric&lang=es&appid=${API_KEY}`);
 
         if (response.status === 401) {
             console.warn('API Key unauthorized (401). It might not be activated yet. Returning mock data.');
@@ -46,7 +46,7 @@ export const getForecastData = async (city) => {
 const getMockData = (city) => ({
     name: city,
     main: { temp: 22, humidity: 60, pressure: 1015 },
-    weather: [{ main: 'Clear', description: 'clear sky', icon: '01d' }],
+    weather: [{ main: 'Clear', description: 'cielo claro', icon: '01d' }],
     wind: { speed: 5 },
     isMock: true
 });
@@ -55,7 +55,8 @@ const getMockForecast = (city) => ({
     list: Array(5).fill(0).map((_, i) => ({
         dt: Date.now() / 1000 + i * 86400,
         main: { temp: 20 + i, humidity: 50 + i * 2 },
-        weather: [{ main: 'Clouds', icon: '02d' }]
+        weather: [{ main: 'Clouds', description: 'nubes', icon: '02d' }]
     })),
     isMock: true
 })
+

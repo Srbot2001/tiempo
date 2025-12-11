@@ -8,9 +8,10 @@ Aplicación web moderna para consultar el clima de las principales ciudades de B
 
 ## ✨ Características
 
-- 🌡️ **Clima en Tiempo Real** - Datos actualizados de OpenWeather API
+- 🌡️ **Clima en Tiempo Real** - Datos actualizados de OpenWeather API (en español)
+- 📍 **Detección Automática de Ubicación** - Detecta la ciudad boliviana más cercana
 - 🎨 **Diseño Dark Cyberpunk** - Interfaz moderna con efectos neón
-- 🌐 **Bilingüe** - Español e Inglés
+- 🌐 **Idioma:** Español (descripciones del clima en español)
 - 🔐 **Login con Google** - Autenticación segura obligatoria
 - ⭐ **Favoritos** - Guarda tus ciudades favoritas con 1 click
 - 📊 **Historial Automático** - Guarda tus últimas 100 búsquedas
